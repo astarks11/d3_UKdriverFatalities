@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>index</title>
+	<meta charset="UTF-8">
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<style>
+		svg {
+			display:block;
+			fill:gray;
+			margin-bottom: 10px;
+		}
+		circle {
+			stroke-width:1;
+			stroke:white;
+		}
+
+      	.my-chart {
+      		fill: #bbb;
+      		background-color: #fee;
+      	}
+    
+	</style>
+	<script src="scores.js"></script>
+	<script src="svg.js"></script>
+	<script src="ukDriverFatalities.js"></script>
+
+</head>
+<body>
+	<p id="demo"></p>
+<script>
+		var svgSize = 500;
+		var minO = 0, maxO = 0, minT = 0, maxT = 0;
+		var minMonth = 0;
+		var maxMonth = 11;
+		var maxYear = 1984;
+		var minYear = 1969;
+		var maxCount = 2654;
+		var minCount = 1057;
+
+		getMax();
+		processPlot2();
+		processPlot3();
+		processPlot4();
+		processPlot1();
+
+		function getMax() {
+			var max = 99999;
+			for (var i = 0; i < ukDriverFatalities.length; i++) {
+				var curr = ukDriverFatalities[i].count;
+				if (max > curr){
+					max = curr;
+				}
+			}
+			//document.getElementById("demo").innerHTML += "max:"+(max);
+
+		}
+		function processPlot1() {
+			var body = d3.select("body");
+			var svg = body.append("svg").attr("width",500).attr("height",500).attr("id","scatterplot_1");
+
+			for (var i = 0; i < scores.length; i++) {
+				var satm = scores[i].SATM;
+				var satv = scores[i].SATV;
+				var sum = satm+satv;
+				var act = scores[i].ACT;
+				var gpa = scores[i].GPA;
+				// ---------------- vis 1 ---------------------
+				scale(300,800,0,490);
+				var x = convert(satm);
+				var y = svgSize - convert(satv);
+				scale(1,36,0,9);
+				var radius = convert(act);
+				scale(0,4,0,1); 
+				var col = convert(gpa); 
+				var color = rgb(0,col,0);
+				svg.append("circle").attr("cx",x).attr("cy",y).attr("r",radius).attr("fill",color).attr("stroke","gray").attr("stroke-width",.2);
+
+			}
+		} //processPlot1
+		function processPlot2() {
+			var sizeWidth = 600/16;
+			var sizeHeight = 300/12;
+			var body = 	d3.select("body");
+			var svg = body.append("svg").attr("width",600).attr("height",300).attr("id","chart1").attr("class","my-chart");
+			for (var i = 0; i < ukDriverFatalities.length; i++) {
+				var month = ukDriverFatalities[i].month;
+				var year = ukDriverFatalities[i].year;
+				var count = ukDriverFatalities[i].count;
+				var x = 600-sizeWidth-(maxYear-year) * sizeWidth;
+				var y = 300-sizeHeight-(month * sizeHeight);
+
+				scale(minCount,maxCount,1,.15); // min count, max count, min col, max col
+				var col = convert(count);
+				var color = rgb(0,col,col/2);
+				svg.append("rect").attr("x",x).attr("y",y).attr("width",sizeWidth).attr("height",sizeHeight).attr("fill",color).attr("stroke","gray").attr("stroke-width",.2);
+			}
+		} // processPlot2
+
+
+
+		function processPlot3() {
+			var body = 	d3.select("body");
+			var svg = body.append("svg").attr("width",600).attr("height",300).attr("id","chart2").attr("class","my-chart");
+
+			var maxRadius = 15;
+			for (var i = 0; i < ukDriverFatalities.length; i++) {				var month = ukDriverFatalities[i].month;
+				var year = ukDriverFatalities[i].year;
+				var count = ukDriverFatalities[i].count;
+
+				scale(minYear,maxYear,maxRadius,600-maxRadius);
+				var x = convert(year);
+				scale(minMonth,maxMonth,maxRadius,300-maxRadius);
+				var y = 300-convert(month);
+				scale(minCount,maxCount,7,maxRadius);
+				var radius = convert(count);
+				var color = rgb(0,0,1);
+
+				svg.append("circle").attr("cx",x).attr("cy",y).attr("r",radius).attr("fill",color).attr("stroke","gray").attr("stroke-width",.2);
+			}
+		} // processPlot3
+
+
+		function processPlot4() {
+			var body = 	d3.select("body");
+			var svg = body.append("svg").attr("width",600).attr("height",300).attr("id","chart3").attr("class","my-chart");
+			var width = 600/ukDriverFatalities.length;
+
+			for (var i = 0; i < ukDriverFatalities.length; i++) {
+				var month = ukDriverFatalities[i].month;
+				var year = ukDriverFatalities[i].year;
+				var count = ukDriverFatalities[i].count;
+				var x = width * i;
+				scale(0,maxCount,0,300);
+				var height = convert(count);
+
+				svg.append("rect").attr("x",x).attr("y",300-height).attr("width",width).attr("height",height).attr("fill","light-grey");
+			}
+		} // processPlot4
+
+		function iterateScores() {
+			for (var i = 0; i < scores.length; i++) {
+				var satm = scores[i].SATM;
+				var satv = scores[i].SATV;
+				var act = scores[i].ACT;
+				var gpa = scores[i].GPA;
+			}
+		} // iterateScores
+
+		function scale(a,b,c,d) {
+			minO = a;
+			maxO = b;
+			minT = c;
+			maxT = d;
+		} // scale
+
+		function convert(x) {
+			return ((x-minO)/(maxO-minO))*(maxT-minT)+minT;
+		}
+		function createElem(x,y,radius,color) {
+			var shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			shape.setAttributeNS(null,"cx",x);
+			shape.setAttributeNS(null,"cy",y);
+			shape.setAttributeNS(null,"r",radius);
+			shape.setAttributeNS(null,"fill",color);
+			return shape;
+		} // createElem
+
+</script>
+</body>
+</html>
